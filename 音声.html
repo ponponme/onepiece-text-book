@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>音声添削</title>
+    <style>
+        .button {
+            background-color: black;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>音声添削</h1>
+    <div>
+        <button id="recordButton" class="button">録音開始</button>
+        <button id="stopButton" class="button" disabled>録音停止</button>
+    </div>
+    <div>
+        <audio id="audioPlayback" controls></audio>
+    </div>
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+
+        document.getElementById('recordButton').addEventListener('click', async () => {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.start();
+            audioChunks = [];
+
+            mediaRecorder.addEventListener('dataavailable', event => {
+                audioChunks.push(event.data);
+            });
+
+            mediaRecorder.addEventListener('stop', () => {
+                const audioBlob = new Blob(audioChunks);
+                const audioUrl = URL.createObjectURL(audioBlob);
+                const audio = document.getElementById('audioPlayback');
+                audio.src = audioUrl;
+            });
+
+            document.getElementById('recordButton').disabled = true;
+            document.getElementById('stopButton').disabled = false;
+        });
+
+        document.getElementById('stopButton').addEventListener('click', () => {
+            mediaRecorder.stop();
+            document.getElementById('recordButton').disabled = false;
+            document.getElementById('stopButton').disabled = true;
+        });
+    </script>
+</body>
+</html>
